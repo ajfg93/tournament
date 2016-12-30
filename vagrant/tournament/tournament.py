@@ -15,15 +15,18 @@ def deleteMatches():
     """Remove all the match records from the database."""
     conn = connect()
     c = conn.cursor()
-    c.execute("delete from scores; delete from matches;")
+    c.execute("update matches set round = 0; update scores set wins = 0;")
+    conn.commit()
     conn.close()
 
 def deletePlayers():
     """Remove all the player records from the database."""
-    deleteMatches()
+    # deleteMatches()
     conn = connect()
     c = conn.cursor()
-    c.execute("delete from players")
+    c.execute("delete from scores; delete from matches;")
+    c.execute("delete from players;")
+    conn.commit()
     conn.close()
 
 def countPlayers():
@@ -31,12 +34,11 @@ def countPlayers():
     num_of_players = 0
     conn = connect()
     c = conn.cursor()
-    num_of_players =  c.execute("select count(*) from players")
+    c.execute("select count(*) from players")
+    num_of_players = c.fetchone()
     conn.close()
-    if num_of_players:
-        return num_of_players
-    else:
-        return 0
+    return num_of_players[0]
+
 
 
 def registerPlayer(name):
@@ -50,13 +52,11 @@ def registerPlayer(name):
     """
     conn = connect()
     c = conn.cursor()
-    player_id = c.execute("insert into players (name) values (%s) returning id", (name,))
-    print player_id
-    print type(player_id)
+    c.execute("insert into players (name) values (%s) returning id;", (name,))
+    player_id = c.fetchone()[0]
     #initialized so I can use "update" in reportMatch
-    # c.execute("insert into matches (id) values (%s)", (player_id,))
-    # c.execute("insert into scores (id) values (%s)", (player_id,))
-
+    c.execute("insert into matches (id) values (%s)", (player_id,))
+    c.execute("insert into scores (id) values (%s)", (player_id,))
     conn.commit()
     conn.close()
 
@@ -76,7 +76,8 @@ def playerStandings():
     """
     conn = connect()
     c = conn.cursor()
-    player_lists = c.execute("select id, name, wins, round as matches from players, matches, scores where player.id = matches.id and matches.id = scores.id order by wins DESC")
+    c.execute("select players.id, name , wins , round from players left join scores on players.id = scores.id left join matches on players.id = matches.id order by wins DESC")
+    player_lists = c.fetchall()
     conn.close()
 
     return player_lists
@@ -91,9 +92,10 @@ def reportMatch(winner, loser):
     """
     conn = connect()
     c = conn.cursor()
-    c.execute("update scores set win = win + 1 where id = %s", (winner,))
+    c.execute("update scores set wins = wins + 1 where id = %s", (winner,))
     c.execute("update matches set round = round + 1 where id = %s", (winner,))
-    c.execute("update matches set round = rount + 1 where id = %s", (loser,))
+    c.execute("update matches set round = round + 1 where id = %s", (loser,))
+    conn.commit()
     conn.close()
  
  
@@ -114,9 +116,19 @@ def swissPairings():
     """
     conn = connect()
     c = conn.cursor()
-    player_pairs = c.execute("select a.id as id1, a.name as name1, b.id as id2, b.name as name2 from player_pairs as a, player_pairs as b where a.wins = b.wins and a.round = b.round and a.id < b.id")
+    c.execute("select id, name from player_pairs order by wins DESC;")
+    player_pairs = c.fetchall()
     conn.close()
 
-    return player_pairs
+    #do the pair matches process
+    length = len(player_pairs)
+    n = 0
+    re = []
+    while n < length:
+        minion = player_pairs[n] + player_pairs[n+1]
+        n = n + 2
+        re.append(minion)
+
+    return re
 
 
