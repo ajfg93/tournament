@@ -1,7 +1,7 @@
 #Project code introduction
 
-#tables
-I create 3 tables with reference keys and 1 views.
+##tables
+I create 3 tables with reference keys and 1 view.
 
 ```
 create table players (
@@ -34,7 +34,7 @@ create view player_pairs as
 - `registerPlayer` 
 	- insert data in players table and return id.
 	- use the id to initialize rows in table matches and scores. (round and wins have **0** as default value).
-	- 
+	
 - `deleteMatches`
 	- only set column round and wins to **0**. Do not delete the rows.
 	
@@ -43,16 +43,5 @@ create view player_pairs as
 
 - `swissPairings`
 	- `select id, name from player_pairs order by wins DESC`. 
-	- ```
-		 #do the pair matches process
-    length = len(player_pairs)
-    n = 0
-    re = []
-    while n < length:
-        minion = player_pairs[n] + player_pairs[n+1]
-        n = n + 2
-        re.append(minion)
-	return re
-	  ```
 	- accroding to the rules of Swiss Match, before the match is finished, I can simply pair each two of the rows after descending querying.
 		- check the **tournament_analysis.xlsx** to verify my assumption
