@@ -11,7 +11,11 @@ from tournament import *
 
 # standings = playerStandings()
 # print type(standings)
-# print standings
 # for (i, n, w, m) in standings:
 # 	print m + ' '
-print swissPairings()
+# print swissPairings()
+
+# registerPlayer("Melpomene Murray")
+# registerPlayer("Randy Schwartz")
+standings = playerStandings()
+print standings[0][0]
